@@ -21,7 +21,11 @@ public class Account {
     private Member member;
 
 
+    public Account(String fosa, double v, Member savedMember) {
+        this.accountType = fosa;
+        this.balance = v;
+        this.member = savedMember;
+    }
 
-
-
+    public Account() {}
 }

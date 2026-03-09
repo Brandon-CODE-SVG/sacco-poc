@@ -21,5 +21,13 @@ public class Loan {
     private Member member;
 
 
+    public Loan(Double principalAmount, double v, String approved, Member member) {
+        this.principalAmount = principalAmount;
+        this.interestRate = v;
+        this.status = approved;
+        this.member = member;
+    }
 
+    public Loan() {
+    }
 }

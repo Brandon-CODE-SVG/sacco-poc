@@ -23,5 +23,11 @@ public class Transaction {
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
+    public Transaction(double amount, String credit, Account account) {
+        this.amount = amount;
+        this.transactionType = credit;
+        this.account = account;
+    }
 
+    public Transaction() {}
 }

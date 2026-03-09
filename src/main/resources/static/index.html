@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technosis SACCO | Core Banking POC</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .log-terminal {
+            background-color: #1e1e1e;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            height: 250px;
+            overflow-y: auto;
+            border-radius: 5px;
+            padding: 15px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#"><i class="bi bi-bank me-2"></i>Technosis SACCO Engine</a>
+        <span class="navbar-text text-light">
+            POC Environment - Live
+        </span>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-top border-primary border-4">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold text-secondary"><i class="bi bi-person-plus-fill me-2"></i>1. Onboard Member</h5>
+                    <hr>
+                    <form id="registerForm">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="fullName" placeholder="Full Name" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="idNumber" placeholder="National ID" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="phoneNumber" placeholder="Phone Number" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Register Profile</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-top border-success border-4">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold text-secondary"><i class="bi bi-cash-stack me-2"></i>2. FOSA Deposit</h5>
+                    <hr>
+                    <form id="depositForm">
+                        <div class="mb-3">
+                            <input type="number" class="form-control" id="accountId" placeholder="Account ID" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="number" class="form-control" id="amount" placeholder="Amount (KES)" required>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Credit Account</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-top border-danger border-4">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold text-secondary"><i class="bi bi-wallet2 me-2"></i>3. FOSA Withdrawal</h5>
+                    <hr>
+                    <form id="withdrawForm">
+                        <div class="mb-3">
+                            <input type="number" class="form-control" id="withdrawAccountId" placeholder="Account ID" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="number" class="form-control" id="withdrawAmount" placeholder="Amount (KES)" required>
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100">Debit Account</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-top border-info border-4">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold text-secondary"><i class="bi bi-arrow-left-right me-2"></i>4. Internal Transfer</h5>
+                    <hr>
+                    <form id="transferForm">
+                        <div class="mb-3">
+                            <input type="number" class="form-control" id="fromAccountId" placeholder="Sender Account ID" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="number" class="form-control" id="toAccountId" placeholder="Receiver Account ID" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="number" class="form-control" id="transferAmount" placeholder="Amount (KES)" required>
+                        </div>
+                        <button type="submit" class="btn btn-info text-white w-100">Execute Transfer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 border-top border-warning border-4">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold text-secondary"><i class="bi bi-file-earmark-text-fill me-2"></i>5. Loan Origination</h5>
+                    <hr>
+                    <form id="loanForm">
+                        <div class="mb-3">
+                            <input type="number" class="form-control" id="memberId" placeholder="Member ID" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="number" class="form-control" id="principalAmount" placeholder="Principal Amount (KES)" required>
+                        </div>
+                        <button type="submit" class="btn btn-warning text-dark fw-bold w-100">Approve Facility</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5 mb-5">
+        <div class="col-12">
+            <h5 class="fw-bold text-secondary"><i class="bi bi-terminal-fill me-2"></i>Live Core System Logs</h5>
+            <div id="systemLog" class="log-terminal shadow">Awaiting secure connection...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Console Logger ---
+    function logResponse(title, data) {
+        const logWindow = document.getElementById('systemLog');
+        // Fixed the string interpolation syntax here
+        logWindow.innerHTML = `<span class="text-white"><strong>[${title}]</strong></span>\n` + JSON.stringify(data, null, 2) + '\n\n' + logWindow.innerHTML;
+    }
+
+    // --- API 1: Register Member ---
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const requestBody = {
+            fullName: document.getElementById('fullName').value,
+            idNumber: document.getElementById('idNumber').value,
+            phoneNumber: document.getElementById('phoneNumber').value,
+        };
+        fetch('/api/members/register', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(requestBody)
+        })
+            .then(response => response.json())
+            .then(data => logResponse("NEW MEMBER REGISTERED", data))
+            .catch(error => logResponse("ERROR", error));
+    });
+
+    // --- API 2: Deposit ---
+    document.getElementById("depositForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const requestBody = {
+            accountId: document.getElementById('accountId').value,
+            amount: document.getElementById('amount').value,
+        };
+        fetch('/api/transactions/deposit', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(requestBody)
+        })
+            .then(response => response.json())
+            .then(data => logResponse("DEPOSIT SUCCESSFUL", data))
+            .catch(error => logResponse("ERROR", error));
+    });
+
+    // --- API 3: Withdraw ---
+    document.getElementById("withdrawForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const requestBody = {
+            accountId: document.getElementById('withdrawAccountId').value,
+            amount: document.getElementById('withdrawAmount').value,
+        };
+        fetch('/api/transactions/withdraw', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(requestBody)
+        })
+            .then(response => response.json())
+            .then(data => logResponse("WITHDRAWAL SUCCESSFUL", data))
+            .catch(error => logResponse("ERROR", error));
+    });
+
+    // --- API 4: Transfer ---
+    document.getElementById("transferForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const requestBody = {
+            fromAccountId: document.getElementById('fromAccountId').value,
+            toAccountId: document.getElementById('toAccountId').value,
+            amount: document.getElementById('transferAmount').value,
+        };
+        fetch('/api/transactions/transfer', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(requestBody)
+        })
+            .then(response => response.json())
+            .then(data => logResponse("TRANSFER EXECUTED", data))
+            .catch(error => logResponse("ERROR", error));
+    });
+
+    // --- API 5: Apply Loan ---
+    document.getElementById("loanForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const requestBody = {
+            memberId: document.getElementById('memberId').value,
+            principalAmount: document.getElementById('principalAmount').value,
+        };
+        fetch('/api/loans/apply', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(requestBody)
+        })
+            .then(response => response.json())
+            .then(data => logResponse("LOAN FACILITY APPROVED", data))
+            .catch(error => logResponse("ERROR", error));
+    });
+</script>
+</body>
+</html>
