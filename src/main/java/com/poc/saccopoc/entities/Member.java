@@ -18,4 +18,5 @@ public class Member {
      private String phoneNumber;
      private LocalDate dateJoined;
 
+
 }
