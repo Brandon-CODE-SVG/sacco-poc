@@ -21,8 +21,13 @@ public class TransactionService {
 
     @Transactional
     public Transaction depositMoney(Long accountId, Double amount) {
-        // Find the account, if it doesn't exist, throw an error
 
+        //A bouncer check
+        if (amount == null || amount <= 0) {
+            throw new RuntimeException("TRANSACTION FAILED: Deposit amount must be greater than zero.");
+        }
+
+        // Find the account, if it doesn't exist, throw an error
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(()-> new RuntimeException("Account not found"));
 
@@ -38,6 +43,16 @@ public class TransactionService {
 
     @Transactional
     public List<Transaction> transferMoney(Long fromAccountId, Long toAccountId, Double amount) {
+
+        if (amount == null || amount <= 0) {
+            throw new RuntimeException("TRANSACTION FAILED: Transfer amount must be greater than zero.");
+        }
+
+        //prevent transferring money to your own account
+        if (fromAccountId.equals(toAccountId)) {
+            throw new RuntimeException("TRANSACTION FAILED: Cannot transfer money to the same account.");
+        }
+
         //Find both accounts
         Account fromAccount = accountRepository.findById(fromAccountId)
                 .orElseThrow(()-> new RuntimeException("Account not found"));
@@ -68,6 +83,10 @@ public class TransactionService {
 
     @Transactional
     public Transaction withdrawMoney(Long accountId, Double amount) {
+
+        if (amount == null || amount <= 0) {
+            throw new RuntimeException("TRANSACTION FAILED: Withdrawal amount must be greater than zero.");
+        }
         //Find the account
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(()-> new RuntimeException("Account not found"));

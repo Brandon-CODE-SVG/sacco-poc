@@ -25,6 +25,11 @@ public class LoanService {
 
 
     public Loan applyLoan(Long memberId, Double principalAmount){
+
+        if (principalAmount == null || principalAmount <= 0) {
+            throw new RuntimeException("TRANSACTION FAILED: Loan application amount must be greater than zero.");
+        }
+
         //find the member
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(()-> new RuntimeException("Member Not Found"));
@@ -37,6 +42,11 @@ public class LoanService {
 
     @Transactional
     public Transaction repayLoan(Long loanId, Long accountId, Double amount){
+
+        if (amount == null || amount <= 0) {
+            throw new RuntimeException("TRANSACTION FAILED: Repayment amount must be greater than zero.");
+        }
+
         Loan loan = loanRepository.findById(loanId)
                 .orElseThrow(()-> new RuntimeException("Loan Not Found"));
 

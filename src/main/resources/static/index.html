@@ -218,24 +218,48 @@
     // --- API 1: Register Member ---
     document.getElementById('registerForm').addEventListener('submit', function(e) {
         e.preventDefault();
+
+        // Grab the submit button and disable it immediately
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "Processing..."; // Give the user visual feedback
+
         const requestBody = {
             fullName: document.getElementById('fullName').value,
             idNumber: document.getElementById('idNumber').value,
             phoneNumber: document.getElementById('phoneNumber').value,
         };
+
         fetch('/api/members/register', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(requestBody)
         })
             .then(response => response.json())
-            .then(data => logResponse("NEW MEMBER REGISTERED", data))
-            .catch(error => logResponse("ERROR", error.message));
+            .then(data => {
+                logResponse("NEW MEMBER REGISTERED", data);
+                // Re-enable the button and reset the text after success
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "Register Member";
+                document.getElementById('registerForm').reset(); // Clear the form boxes!
+            })
+            .catch(error => {
+                logResponse("ERROR", error.message);
+                // Re-enable the button if there is a crash so they can try again
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "Register Member";
+            });
     });
+
 
     // --- API 2: Deposit ---
     document.getElementById("depositForm").addEventListener("submit", function(e) {
         e.preventDefault();
+
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "Processing...";
+
         const requestBody = {
             accountId: document.getElementById('accountId').value,
             amount: document.getElementById('amount').value,
@@ -246,13 +270,29 @@
             body: JSON.stringify(requestBody)
         })
             .then(response => response.json())
-            .then(data => logResponse("DEPOSIT SUCCESSFUL", data))
-            .catch(error => logResponse("ERROR", error.message));
+            .then(data => {
+                logResponse("DEPOSIT SUCCESSFUL", data)
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Deposit";
+        document.getElementById('depositForm').reset();
+    })
+            .catch(error => {
+                logResponse("ERROR", error.message)
+
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Deposit";
+    });
+
     });
 
     // --- API 3: Withdraw ---
     document.getElementById("withdrawForm").addEventListener("submit", function(e) {
         e.preventDefault();
+
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "Processing...";
+
         const requestBody = {
             accountId: document.getElementById('withdrawAccountId').value,
             amount: document.getElementById('withdrawAmount').value,
@@ -263,13 +303,27 @@
             body: JSON.stringify(requestBody)
         })
             .then(response => response.json())
-            .then(data => logResponse("WITHDRAWAL SUCCESSFUL", data))
-            .catch(error => logResponse("ERROR", error.message));
+            .then(data => {
+                logResponse("WITHDRAWAL SUCCESSFUL", data)
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Withdraw";
+        document.getElementById('withdrawForm').reset();
+    })
+            .catch(error => {
+                logResponse("ERROR", error.message)
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "Withdraw";
+            });
     });
 
     // --- API 4: Transfer ---
     document.getElementById("transferForm").addEventListener("submit", function(e) {
         e.preventDefault();
+
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "Processing...";
+
         const requestBody = {
             fromAccountId: document.getElementById('fromAccountId').value,
             toAccountId: document.getElementById('toAccountId').value,
@@ -281,13 +335,30 @@
             body: JSON.stringify(requestBody)
         })
             .then(response => response.json())
-            .then(data => logResponse("TRANSFER EXECUTED", data))
-            .catch(error => logResponse("ERROR", error.message));
+            .then(data => {
+                logResponse("TRANSFER EXECUTED", data)
+
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "transfer";
+                document.getElementById('transferForm').reset();
+
+            })
+            .catch(error => {
+                logResponse("ERROR", error.message)
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "transfer";
+
+            });
     });
 
     // --- API 5: Apply Loan ---
     document.getElementById("loanForm").addEventListener("submit", function(e) {
         e.preventDefault();
+
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "Processing...";
+
         const requestBody = {
             memberId: document.getElementById('memberId').value,
             principalAmount: document.getElementById('principalAmount').value,
@@ -298,13 +369,28 @@
             body: JSON.stringify(requestBody)
         })
             .then(response => response.json())
-            .then(data => logResponse("LOAN FACILITY APPROVED", data))
-            .catch(error => logResponse("ERROR", error.message));
+            .then(data => {
+                logResponse("LOAN FACILITY APPROVED", data)
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "Apply loan";
+                document.getElementById('loanForm').reset();
+
+            })
+            .catch(error => {
+                logResponse("ERROR", error.message)
+                
+            });
     });
 
     // --- API 6: Repay Loan ---
     document.getElementById("repayForm").addEventListener("submit", function(e) {
         e.preventDefault();
+
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "Processing...";
+
+
         const requestBody = {
             loanId: document.getElementById('repayLoanId').value,
             accountId: document.getElementById('repayAccountId').value,
@@ -316,8 +402,19 @@
             body: JSON.stringify(requestBody)
         })
             .then(response => response.json())
-            .then(data => logResponse("REPAYMENT EXECUTED", data))
-            .catch(error => logResponse("ERROR", error.message));
+            .then(data => {
+                logResponse("LOAN REPAID", data);
+                // Re-enable the button and reset the text after success
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "Repay Loan";
+                document.getElementById('repayForm').reset();
+            })
+            .catch(error => {
+                logResponse("ERROR", error.message);
+                // Re-enable the button if there is a crash so they can try again
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "Repay Loan";
+            });
     });
 
     // --- API 7: Fetch Mini-Statement (GET) ---
