@@ -55,10 +55,17 @@ public class TransactionService {
 
         //Find both accounts
         Account fromAccount = accountRepository.findById(fromAccountId)
-                .orElseThrow(()-> new RuntimeException("Account not found"));
+                .orElseThrow(()-> new RuntimeException(" Sender Account not found"));
+
+        if ("BOSA".equalsIgnoreCase(fromAccount.getAccountType())) {
+            throw new RuntimeException("COMPLIANCE VIOLATION: You cannot transfer funds out of a Share Capital (BOSA) account.");
+        }
+
 
         Account toAccount = accountRepository.findById(toAccountId)
-                .orElseThrow(()-> new RuntimeException("Account not found"));
+                .orElseThrow(()-> new RuntimeException("Receiver Account not found"));
+
+
 
         //Business rule: check if they have enough money
         if(fromAccount.getBalance() < amount) {
@@ -90,6 +97,10 @@ public class TransactionService {
         //Find the account
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(()-> new RuntimeException("Account not found"));
+
+        if("BOSA".equalsIgnoreCase(account.getAccountType())){
+            throw new RuntimeException("COMPLIANCE VIOLATION: Share Capital (BOSA) is locked and cannot be withdrawn.");
+        }
 
         //The golden Rule: Check if they have enough Money!
 

@@ -19,12 +19,19 @@ public class MemberService {
     private final AccountRepository accountRepository;
 
     @Transactional
-    public Member registerMember(Member newMember) {
+    public Member registerMember(String fullName, String idNumber, String phoneNumber, String kraPin, String tier) {
+
+        //Create the member with the new KRA PIN and tier.
+        Member newMember = new Member(fullName, idNumber, phoneNumber, kraPin, tier);
         Member savedMember = memberRepository.save(newMember);
 
         //Automatically create a FOSA account for the new member
         Account fosaAccount = new Account("FOSA", 0.0, savedMember);
         accountRepository.save(fosaAccount);
+
+        //Automatically Create a BOSA account for the new member
+        Account bosaAccount = new Account("BOSA", 0.0, savedMember);
+        accountRepository.save(bosaAccount);
 
         return savedMember;
     }

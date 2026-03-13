@@ -3,231 +3,361 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Technosis SACCO | Core Banking Engine</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Technosis SACCO | Workspace</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f4f6f9;
-        }
-        .card {
-            border: none;
-            border-radius: 10px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
-        }
-        .log-terminal {
-            background-color: #0d1117;
-            color: #56d364;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.9rem;
-            height: 300px;
-            overflow-y: auto;
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-        }
-        .section-title {
-            font-weight: 700;
-            color: #2c3e50;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #dee2e6;
-            padding-bottom: 8px;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; overflow-x: hidden; }
+        /* Sidebar Styles */
+        #sidebar { min-width: 260px; max-width: 260px; min-height: 100vh; background-color: #1e293b; color: #cbd5e1; transition: all 0.3s; }
+        #sidebar .nav-link { color: #cbd5e1; font-weight: 500; padding: 12px 20px; border-radius: 6px; margin: 4px 12px; transition: all 0.2s; cursor: pointer; }
+        #sidebar .nav-link:hover, #sidebar .nav-link.active { background-color: #3b82f6; color: white; }
+        #sidebar .nav-link i { margin-right: 10px; font-size: 1.1rem; }
+        /* Main Content Styles */
+        #content { width: 100%; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; }
+        .top-navbar { background-color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 10; position: sticky; top: 0; }
+        .card { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); }
+        .stat-card { border-left: 4px solid #3b82f6; }
+        .terminal { background-color: #0f172a; color: #22c55e; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; height: 200px; overflow-y: auto; padding: 15px; border-radius: 8px; }
+        .terminal::-webkit-scrollbar { width: 8px; }
+        .terminal::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        /* View Management */
+        .app-view { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .app-view.active-view { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
-</head>
-<body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm mb-4">
-    <div class="container">
-        <a class="navbar-brand fw-bold" href="#">
-            <i class="bi bi-hexagon-fill text-primary me-2"></i>Technosis SACCO Core
-        </a>
-        <span class="badge bg-primary px-3 py-2 rounded-pill shadow-sm">
-            <i class="bi bi-broadcast me-1"></i> Live POC Environment
-        </span>
+    <script>
+        // THE BOUNCER: If they don't have the wristband, kick them out immediately!
+        if (sessionStorage.getItem('saccoAdminAuth') !== 'true') {
+            window.location.replace('login.html');
+        }
+    </script>
+</head>
+<body class="d-flex">
+
+<nav id="sidebar" class="d-flex flex-column py-4 shadow-lg flex-shrink-0">
+    <div class="text-center mb-4 text-white px-3">
+        <i class="bi bi-hexagon-fill text-primary" style="font-size: 2rem;"></i>
+        <h5 class="fw-bold mt-2 mb-0">Technosis SACCO</h5>
+        <span class="badge bg-success mt-1" style="font-size: 0.7rem;">SYSTEM ONLINE</span>
+    </div>
+    <ul class="nav flex-column mb-auto">
+        <li class="nav-item"><a class="nav-link" data-target="view-overview"><i class="bi bi-grid-1x2-fill"></i> System Overview</a></li>
+        <li class="nav-item"><a class="nav-link active" data-target="view-members"><i class="bi bi-people-fill"></i> Member Management</a></li>
+        <li class="nav-item"><a class="nav-link" data-target="view-teller"><i class="bi bi-cash-stack"></i> Teller Operations</a></li>
+        <li class="nav-item"><a class="nav-link" data-target="view-credit"><i class="bi bi-briefcase-fill"></i> Credit & Loans</a></li>
+    </ul>
+    <div class="px-4 mt-auto">
+        <hr class="text-secondary">
+        <div class="d-flex align-items-center text-white">
+            <i class="bi bi-person-circle fs-4 me-2"></i>
+            <div>
+                <small class="d-block fw-bold">System Admin</small>
+                <a href="#" onclick="executeLogout()" class="text-decoration-none text-danger small"><i class="bi bi-box-arrow-left"></i> Secure Logout</a>            </div>
+        </div>
     </div>
 </nav>
 
-<div class="container pb-5">
+<div id="content">
+    <nav class="navbar top-navbar px-4 py-3 d-flex justify-content-between">
+        <h4 class="fw-bold text-dark mb-0" id="pageTitle">Member Management</h4>
+        <div class="d-flex align-items-center">
+            <i class="bi bi-bell fs-5 text-muted me-3"></i>
+            <span class="text-muted small fw-bold"><i class="bi bi-calendar3 me-1"></i> March 2026 Cycle</span>
+        </div>
+    </nav>
 
-    <div class="section-title mt-4"><i class="bi bi-search me-2"></i>Account Insights</div>
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm border-top border-primary border-4">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-5">
-                            <h5 class="fw-bold text-dark mb-3">Fetch Mini-Statement</h5>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="bi bi-person-badge"></i></span>
-                                <input type="number" id="searchAccountId" class="form-control" placeholder="Enter Account ID..." required>
-                                <button class="btn btn-primary px-4 fw-bold" type="button" id="btnSearch">Retrieve</button>
+    <div class="container-fluid p-4 flex-grow-1">
+
+        <div id="view-overview" class="app-view">
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="card stat-card p-4 h-100">
+                        <h6 class="text-muted fw-bold mb-2">TOTAL ACTIVE MEMBERS</h6>
+                        <h2 class="fw-bold text-dark mb-0">1,204</h2>
+                        <small class="text-success fw-bold mt-2"><i class="bi bi-arrow-up-right"></i> +12 this week</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card stat-card p-4 h-100" style="border-left-color: #10b981;">
+                        <h6 class="text-muted fw-bold mb-2">KYC PENDING APPROVAL</h6>
+                        <h2 class="fw-bold text-dark mb-0">18</h2>
+                        <small class="text-warning fw-bold mt-2"><i class="bi bi-exclamation-circle"></i> Requires attention</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card stat-card p-4 h-100" style="border-left-color: #8b5cf6;">
+                        <h6 class="text-muted fw-bold mb-2">TOTAL SHARE CAPITAL</h6>
+                        <h2 class="fw-bold text-dark mb-0">KES 45.2M</h2>
+                        <small class="text-success fw-bold mt-2"><i class="bi bi-graph-up"></i> Stable liquidity</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body p-5 text-center text-muted">
+                    <i class="bi bi-bar-chart-fill mb-3" style="font-size: 3rem; color: #cbd5e1;"></i>
+                    <h5>Reporting Dashboard</h5>
+                    <p>Analytics and charts will populate here as more transactions are processed.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-members" class="app-view active-view">
+            <div class="row g-4">
+                <div class="col-md-5">
+                    <div class="card h-100 mb-4">
+                        <div class="card-header bg-white py-3 border-bottom">
+                            <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-person-badge me-2"></i>KYC Onboarding Application</h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <form id="registerForm">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-muted mb-1">Full Legal Name</label>
+                                    <input type="text" class="form-control" id="fullName" required>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-6 mb-2">
+                                        <label class="form-label small fw-bold text-muted mb-1">National ID</label>
+                                        <input type="text" class="form-control" id="idNumber" required>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <label class="form-label small fw-bold text-muted mb-1">KRA PIN</label>
+                                        <input type="text" class="form-control" id="kraPin" placeholder="A000000000Z" required>
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label small fw-bold text-muted mb-1">Phone Number</label>
+                                        <input type="text" class="form-control" id="phoneNumber" required>
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label small fw-bold text-muted mb-1">Member Tier</label>
+                                        <select class="form-select" id="memberTier">
+                                            <option value="ORDINARY">Ordinary</option>
+                                            <option value="JUNIOR">Junior</option>
+                                            <option value="CORPORATE">Corporate</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 fw-bold mt-2 py-2"><i class="bi bi-check-circle me-2"></i>Provision Accounts</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-7">
+                    <div class="card mb-4">
+                        <div class="card-header bg-white py-3 border-bottom">
+                            <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-person-bounding-box me-2"></i>Member 360 Dashboard</h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="input-group mb-4">
+                                <input type="number" id="searchMemberId" class="form-control" placeholder="Enter Member ID (e.g., 1)..." required>
+                                <button class="btn btn-dark fw-bold px-4" type="button" id="btnSearchMember">Retrieve 360</button>
+                            </div>
+
+                            <div id="member360Display" class="d-none animation-fade-in">
+                                <div class="p-3 bg-light rounded border border-secondary mb-3 shadow-sm">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 class="text-primary mb-0 fw-bold"><i class="bi bi-person-circle me-2"></i> <span id="dispMemberName"></span></h5>
+                                        <span id="dispMemberTier" class="badge bg-secondary"></span>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <div class="p-2 bg-white border border-success rounded text-center shadow-sm">
+                                                <small class="text-muted fw-bold d-block" style="font-size: 0.7rem;">FOSA (LIQUID CASH)</small>
+                                                <span class="text-success fw-bold">KES <span id="dispFosa">0.00</span></span>
+                                                <br><small class="text-muted" style="font-size: 0.65rem;">Account ID: <span id="dispFosaId"></span></small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="p-2 bg-white border rounded text-center shadow-sm" style="border-color: #a855f7 !important;">
+                                                <small class="text-muted fw-bold d-block" style="font-size: 0.7rem;">BOSA (SHARE CAPITAL)</small>
+                                                <span class="fw-bold" style="color: #7e22ce;">KES <span id="dispBosa">0.00</span></span>
+                                                <br><small class="text-muted" style="font-size: 0.65rem;">Account ID: <span id="dispBosaId"></span></small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 bg-white rounded border mb-3 shadow-sm">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="fw-bold text-muted">Mandatory Minimum Shares (KES 5,000)</small>
+                                        <small class="fw-bold text-dark" id="dispProgressText">0%</small>
+                                    </div>
+                                    <div class="progress" style="height: 10px;">
+                                        <div id="shareProgressBar" class="progress-bar bg-warning" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+
+                                <div class="text-center p-2 rounded" style="background-color: #f3e8ff; border: 1px dashed #a855f7;">
+                                    <small class="fw-bold" style="color: #7e22ce;"><i class="bi bi-graph-up-arrow me-1"></i> Est. Annual Dividend: KES <span id="dispDividend">0.00</span></small>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-7">
-                            <div id="statementDisplay" class="d-none h-100 p-3 bg-light rounded border border-secondary">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h5 class="text-primary mb-0 fw-bold"><i class="bi bi-person-circle me-2"></i><span id="dispName"></span></h5>
+                    </div>
+
+                    <div class="card h-100">
+                        <div class="card-header bg-white py-3 border-bottom">
+                            <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-receipt me-2"></i>Account Transaction History</h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="input-group mb-4">
+                                <input type="number" id="searchAccountId" class="form-control" placeholder="Enter FOSA or BOSA Account ID..." required>
+                                <button class="btn btn-outline-dark fw-bold px-4" type="button" id="btnSearch">Fetch Statement</button>
+                            </div>
+                            <div id="statementDisplay" class="d-none bg-light p-4 rounded border border-secondary">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="text-primary mb-0 fw-bold"><i class="bi bi-person-circle me-2"></i> <span id="dispName"></span></h5>
                                     <h4 class="text-success mb-0 fw-bold">KES <span id="dispBalance"></span></h4>
                                 </div>
-                                <hr class="my-2">
-                                <h6 class="fw-bold text-muted small mb-2">RECENT TRANSACTIONS (MAX 5):</h6>
-                                <ul id="dispTransactions" class="list-group list-group-flush bg-transparent small">
+                                <hr class="my-3">
+                                <small class="fw-bold text-muted d-block mb-2">RECENT TRANSACTIONS:</small>
+                                <ul id="dispTransactions" class="list-group list-group-flush bg-transparent">
                                 </ul>
                             </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div id="view-teller" class="app-view">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-top border-success border-4 h-100">
+                        <div class="card-body p-4">
+                            <h5 class="card-title fw-bold text-success mb-4"><i class="bi bi-box-arrow-in-down me-2"></i>SACCO Deposit</h5>
+                            <form id="depositForm">
+                                <input type="number" class="form-control mb-3" id="accountId" placeholder="Account ID (FOSA or BOSA)" required>
+                                <input type="number" class="form-control mb-4" id="amount" placeholder="Amount (KES)" required>
+                                <button type="submit" class="btn btn-success w-100 fw-bold py-2">Execute Deposit</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-top border-danger border-4 h-100">
+                        <div class="card-body p-4">
+                            <h5 class="card-title fw-bold text-danger mb-4"><i class="bi bi-box-arrow-up me-2"></i>SACCO Withdrawal</h5>
+                            <form id="withdrawForm">
+                                <input type="number" class="form-control mb-3" id="withdrawAccountId" placeholder="Account ID (FOSA Only)" required>
+                                <input type="number" class="form-control mb-4" id="withdrawAmount" placeholder="Amount (KES)" required>
+                                <button type="submit" class="btn btn-danger w-100 fw-bold py-2">Execute Withdrawal</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-top border-info border-4 h-100">
+                        <div class="card-body p-4">
+                            <h5 class="card-title fw-bold text-info mb-4"><i class="bi bi-arrow-left-right me-2"></i>Internal Transfer</h5>
+                            <form id="transferForm">
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6"><input type="number" class="form-control" id="fromAccountId" placeholder="Sender ID" required></div>
+                                    <div class="col-6"><input type="number" class="form-control" id="toAccountId" placeholder="Receiver ID" required></div>
+                                </div>
+                                <input type="number" class="form-control mb-4" id="transferAmount" placeholder="Amount (KES)" required>
+                                <button type="submit" class="btn btn-info text-white w-100 fw-bold py-2">Execute Transfer</button>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div id="view-credit" class="app-view">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-top border-warning border-4 h-100">
+                        <div class="card-body p-4">
+                            <h5 class="card-title fw-bold text-warning-emphasis mb-4"><i class="bi bi-file-earmark-text-fill me-2"></i>Loan Origination</h5>
+                            <form id="loanForm">
+                                <input type="number" class="form-control mb-3" id="memberId" placeholder="Borrower Member ID" required>
+                                <input type="number" class="form-control mb-3" id="principalAmount" placeholder="Principal Amount (KES)" required>
+                                <input type="text" class="form-control mb-4" id="guarantorIds" placeholder="Guarantor IDs (e.g., 2,3)" required>
+                                <button type="submit" class="btn btn-warning text-dark w-100 fw-bold py-2">Approve Facility</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-top border-dark border-4 h-100">
+                        <div class="card-body p-4">
+                            <h5 class="card-title fw-bold text-dark mb-4"><i class="bi bi-bank me-2"></i>Loan Repayment</h5>
+                            <form id="repayForm">
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6"><input type="number" class="form-control" id="repayLoanId" placeholder="Loan ID" required></div>
+                                    <div class="col-6"><input type="number" class="form-control" id="repayAccountId" placeholder="Account ID" required></div>
+                                </div>
+                                <input type="number" class="form-control mb-4" id="repayAmount" placeholder="Amount (KES)" required>
+                                <button type="submit" class="btn btn-dark w-100 fw-bold py-2">Process Repayment</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm h-100 bg-dark text-white border-0">
+                        <div class="card-body p-4 d-flex flex-column justify-content-center align-items-center text-center">
+                            <i class="bi bi-cpu-fill text-warning mb-3" style="font-size: 3rem;"></i>
+                            <h5 class="fw-bold text-warning mb-2">EOM Batch Processor</h5>
+                            <p class="small text-light mb-4">Simulate 1% monthly compound interest on all active loans.</p>
+                            <button id="btnSimulateEOM" class="btn btn-warning text-dark fw-bold w-100 py-2 shadow">Run Simulator</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4 mb-2">
+            <div class="card-header bg-dark text-white py-2 d-flex justify-content-between align-items-center border-0 rounded-top">
+                <small class="fw-bold"><i class="bi bi-terminal me-2"></i>Live System Audit Trail</small>
+                <button class="btn btn-sm btn-outline-light py-0" style="font-size: 0.7rem;" onclick="document.getElementById('systemLog').innerHTML = ''">Clear Logs</button>
+            </div>
+            <div id="systemLog" class="terminal m-0 rounded-bottom rounded-top-0">
+                <span class="text-muted">[SYSTEM] Interface loaded successfully. Awaiting secure connection...</span><br><br>
+            </div>
+        </div>
+
     </div>
-
-    <div class="section-title mt-5"><i class="bi bi-cash-coin me-2"></i>Daily Teller Operations</div>
-    <div class="row g-4">
-        <div class="col-md-3">
-            <div class="card shadow-sm h-100 border-top border-secondary border-4">
-                <div class="card-body">
-                    <h6 class="card-title fw-bold text-secondary mb-3"><i class="bi bi-person-plus-fill me-2"></i>1. Onboard Member</h6>
-                    <form id="registerForm">
-                        <input type="text" class="form-control mb-2" id="fullName" placeholder="Full Name" required>
-                        <input type="text" class="form-control mb-2" id="idNumber" placeholder="National ID" required>
-                        <input type="text" class="form-control mb-3" id="phoneNumber" placeholder="Phone Number" required>
-                        <button type="submit" class="btn btn-outline-secondary w-100 fw-bold">Register</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card shadow-sm h-100 border-top border-success border-4">
-                <div class="card-body">
-                    <h6 class="card-title fw-bold text-success mb-3"><i class="bi bi-box-arrow-in-down me-2"></i>2. FOSA Deposit</h6>
-                    <form id="depositForm">
-                        <input type="number" class="form-control mb-2" id="accountId" placeholder="Account ID" required>
-                        <input type="number" class="form-control mb-3" id="amount" placeholder="Amount (KES)" required>
-                        <button type="submit" class="btn btn-success w-100 fw-bold">Credit Account</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card shadow-sm h-100 border-top border-danger border-4">
-                <div class="card-body">
-                    <h6 class="card-title fw-bold text-danger mb-3"><i class="bi bi-box-arrow-up me-2"></i>3. FOSA Withdrawal</h6>
-                    <form id="withdrawForm">
-                        <input type="number" class="form-control mb-2" id="withdrawAccountId" placeholder="Account ID" required>
-                        <input type="number" class="form-control mb-3" id="withdrawAmount" placeholder="Amount (KES)" required>
-                        <button type="submit" class="btn btn-danger w-100 fw-bold">Debit Account</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card shadow-sm h-100 border-top border-info border-4">
-                <div class="card-body">
-                    <h6 class="card-title fw-bold text-info mb-3"><i class="bi bi-arrow-left-right me-2"></i>4. Internal Transfer</h6>
-                    <form id="transferForm">
-                        <input type="number" class="form-control mb-2" id="fromAccountId" placeholder="Sender Account ID" required>
-                        <input type="number" class="form-control mb-2" id="toAccountId" placeholder="Receiver Account ID" required>
-                        <input type="number" class="form-control mb-3" id="transferAmount" placeholder="Amount (KES)" required>
-                        <button type="submit" class="btn btn-info text-white w-100 fw-bold">Execute</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section-title mt-5"><i class="bi bi-briefcase-fill me-2"></i>Credit & Facility Management</div>
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100 border-top border-warning border-4">
-                <div class="card-body">
-                    <h6 class="card-title fw-bold text-warning-emphasis mb-3"><i class="bi bi-file-earmark-text-fill me-2"></i>5. Loan Origination</h6>
-                    <form id="loanForm">
-                        <input type="number" class="form-control mb-2" id="memberId" placeholder="Member ID" required>
-                        <input type="number" class="form-control mb-3" id="principalAmount" placeholder="Principal Amount (KES)" required>
-                        <button type="submit" class="btn btn-warning text-dark fw-bold w-100">Approve Facility</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100 border-top border-dark border-4">
-                <div class="card-body">
-                    <h6 class="card-title fw-bold text-dark mb-3"><i class="bi bi-bank me-2"></i>6. Loan Repayment</h6>
-                    <form id="repayForm">
-                        <input type="number" class="form-control mb-2" id="repayLoanId" placeholder="Loan ID" required>
-                        <input type="number" class="form-control mb-2" id="repayAccountId" placeholder="FOSA Account ID" required>
-                        <input type="number" class="form-control mb-3" id="repayAmount" placeholder="Amount (KES)" required>
-                        <button type="submit" class="btn btn-dark w-100 fw-bold">Process Repayment</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100 bg-dark text-white border-0">
-                <div class="card-body d-flex flex-column justify-content-center align-items-center text-center p-4">
-                    <i class="bi bi-cpu-fill text-warning mb-3" style="font-size: 3rem;"></i>
-                    <h5 class="fw-bold text-warning mb-2">EOM Batch Processor</h5>
-                    <p class="small text-light mb-4">Simulates the End-of-Month cycle, applying 1% monthly compound interest to all active loans.</p>
-                    <button id="btnSimulateEOM" class="btn btn-warning fw-bold w-100 shadow">Run Simulator</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row mt-5">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-end mb-2">
-                <h6 class="fw-bold text-secondary mb-0"><i class="bi bi-terminal-fill me-2"></i>Live System Audit Trail</h6>
-                <button class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('systemLog').innerHTML = ''">
-                    <i class="bi bi-trash3"></i> Clear Console
-                </button>
-            </div>
-            <div id="systemLog" class="log-terminal shadow">
-                <span class="text-muted">System initialized and awaiting secure connection...</span><br><br>
-            </div>
-        </div>
-    </div>
-
 </div>
 
 <script>
-    // --- Professional Console Logger (With Timestamps) ---
+    // --- THE TRAFFIC COP (Navigation Logic) ---
+    document.querySelectorAll('#sidebar .nav-link[data-target]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelectorAll('#sidebar .nav-link').forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById('pageTitle').innerText = this.innerText.trim();
+            document.querySelectorAll('.app-view').forEach(view => view.classList.remove('active-view'));
+            const targetViewId = this.getAttribute('data-target');
+            document.getElementById(targetViewId).classList.add('active-view');
+        });
+    });
+
+    // --- Professional Console Logger ---
     function logResponse(title, data) {
         const logWindow = document.getElementById('systemLog');
         const timestamp = new Date().toLocaleTimeString();
         let formattedData = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
-
         logWindow.innerHTML = `<span class="text-info">[${timestamp}]</span> <span class="text-white fw-bold">[${title}]</span>\n${formattedData}\n\n` + logWindow.innerHTML;
     }
 
     // --- API 1: Register Member ---
     document.getElementById('registerForm').addEventListener('submit', function(e) {
         e.preventDefault();
-
-        // Grab the submit button and disable it immediately
         const submitBtn = this.querySelector('button[type="submit"]');
         submitBtn.disabled = true;
-        submitBtn.innerHTML = "Processing..."; // Give the user visual feedback
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
 
         const requestBody = {
             fullName: document.getElementById('fullName').value,
             idNumber: document.getElementById('idNumber').value,
             phoneNumber: document.getElementById('phoneNumber').value,
+            kraPin: document.getElementById('kraPin').value,
+            tier: document.getElementById('memberTier').value
         };
 
         fetch('/api/members/register', {
@@ -238,24 +368,20 @@
             .then(response => response.json())
             .then(data => {
                 logResponse("NEW MEMBER REGISTERED", data);
-                // Re-enable the button and reset the text after success
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = "Register Member";
-                document.getElementById('registerForm').reset(); // Clear the form boxes!
+                submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Provision Accounts';
+                document.getElementById('registerForm').reset();
             })
             .catch(error => {
                 logResponse("ERROR", error.message);
-                // Re-enable the button if there is a crash so they can try again
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = "Register Member";
+                submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Provision Accounts';
             });
     });
-
 
     // --- API 2: Deposit ---
     document.getElementById("depositForm").addEventListener("submit", function(e) {
         e.preventDefault();
-
         const submitBtn = this.querySelector('button[type="submit"]');
         submitBtn.disabled = true;
         submitBtn.innerHTML = "Processing...";
@@ -264,6 +390,7 @@
             accountId: document.getElementById('accountId').value,
             amount: document.getElementById('amount').value,
         };
+
         fetch('/api/transactions/deposit', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -271,24 +398,21 @@
         })
             .then(response => response.json())
             .then(data => {
-                logResponse("DEPOSIT SUCCESSFUL", data)
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = "Deposit";
-        document.getElementById('depositForm').reset();
-    })
+                logResponse("DEPOSIT SUCCESSFUL", data);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "Execute Deposit";
+                document.getElementById('depositForm').reset();
+            })
             .catch(error => {
-                logResponse("ERROR", error.message)
-
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = "Deposit";
-    });
-
+                logResponse("ERROR", error.message);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "Execute Deposit";
+            });
     });
 
     // --- API 3: Withdraw ---
     document.getElementById("withdrawForm").addEventListener("submit", function(e) {
         e.preventDefault();
-
         const submitBtn = this.querySelector('button[type="submit"]');
         submitBtn.disabled = true;
         submitBtn.innerHTML = "Processing...";
@@ -297,6 +421,7 @@
             accountId: document.getElementById('withdrawAccountId').value,
             amount: document.getElementById('withdrawAmount').value,
         };
+
         fetch('/api/transactions/withdraw', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -304,22 +429,21 @@
         })
             .then(response => response.json())
             .then(data => {
-                logResponse("WITHDRAWAL SUCCESSFUL", data)
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = "Withdraw";
-        document.getElementById('withdrawForm').reset();
-    })
-            .catch(error => {
-                logResponse("ERROR", error.message)
+                logResponse("WITHDRAWAL SUCCESSFUL", data);
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = "Withdraw";
+                submitBtn.innerHTML = "Execute Withdrawal";
+                document.getElementById('withdrawForm').reset();
+            })
+            .catch(error => {
+                logResponse("ERROR", error.message);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "Execute Withdrawal";
             });
     });
 
     // --- API 4: Transfer ---
     document.getElementById("transferForm").addEventListener("submit", function(e) {
         e.preventDefault();
-
         const submitBtn = this.querySelector('button[type="submit"]');
         submitBtn.disabled = true;
         submitBtn.innerHTML = "Processing...";
@@ -329,6 +453,7 @@
             toAccountId: document.getElementById('toAccountId').value,
             amount: document.getElementById('transferAmount').value,
         };
+
         fetch('/api/transactions/transfer', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -336,33 +461,35 @@
         })
             .then(response => response.json())
             .then(data => {
-                logResponse("TRANSFER EXECUTED", data)
-
+                logResponse("TRANSFER EXECUTED", data);
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = "transfer";
+                submitBtn.innerHTML = "Execute Transfer";
                 document.getElementById('transferForm').reset();
-
             })
             .catch(error => {
-                logResponse("ERROR", error.message)
+                logResponse("ERROR", error.message);
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = "transfer";
-
+                submitBtn.innerHTML = "Execute Transfer";
             });
     });
 
-    // --- API 5: Apply Loan ---
+    // --- API 5: Apply Loan (UPDATED WITH GUARANTORS) ---
     document.getElementById("loanForm").addEventListener("submit", function(e) {
         e.preventDefault();
-
         const submitBtn = this.querySelector('button[type="submit"]');
         submitBtn.disabled = true;
         submitBtn.innerHTML = "Processing...";
 
+        // Convert the comma-separated string "2,3" into an array of integers [2, 3]
+        const rawGuarantors = document.getElementById('guarantorIds').value;
+        const guarantorArray = rawGuarantors.split(',').map(id => parseInt(id.trim()));
+
         const requestBody = {
             memberId: document.getElementById('memberId').value,
             principalAmount: document.getElementById('principalAmount').value,
+            guarantorIds: guarantorArray // Send the array to the backend!
         };
+
         fetch('/api/loans/apply', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -370,32 +497,31 @@
         })
             .then(response => response.json())
             .then(data => {
-                logResponse("LOAN FACILITY APPROVED", data)
+                logResponse("LOAN FACILITY APPROVED", data);
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = "Apply loan";
+                submitBtn.innerHTML = "Approve Facility";
                 document.getElementById('loanForm').reset();
-
             })
             .catch(error => {
-                logResponse("ERROR", error.message)
-                
+                logResponse("ERROR", error.message);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "Approve Facility";
             });
     });
 
     // --- API 6: Repay Loan ---
     document.getElementById("repayForm").addEventListener("submit", function(e) {
         e.preventDefault();
-
         const submitBtn = this.querySelector('button[type="submit"]');
         submitBtn.disabled = true;
         submitBtn.innerHTML = "Processing...";
-
 
         const requestBody = {
             loanId: document.getElementById('repayLoanId').value,
             accountId: document.getElementById('repayAccountId').value,
             amount: document.getElementById('repayAmount').value,
         };
+
         fetch('/api/loans/repay', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -404,23 +530,26 @@
             .then(response => response.json())
             .then(data => {
                 logResponse("LOAN REPAID", data);
-                // Re-enable the button and reset the text after success
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = "Repay Loan";
+                submitBtn.innerHTML = "Process Repayment";
                 document.getElementById('repayForm').reset();
             })
             .catch(error => {
                 logResponse("ERROR", error.message);
-                // Re-enable the button if there is a crash so they can try again
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = "Repay Loan";
+                submitBtn.innerHTML = "Process Repayment";
             });
     });
 
-    // --- API 7: Fetch Mini-Statement (GET) ---
+    // --- RE-INSERTED API 7: Fetch Mini-Statement (GET) ---
     document.getElementById("btnSearch").addEventListener("click", function() {
         const accountId = document.getElementById("searchAccountId").value;
+        const submitBtn = this;
+
         if(!accountId) return alert("Please enter an account ID");
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "Fetching...";
 
         fetch(`/api/accounts/${accountId}/statement`)
             .then(response => {
@@ -429,6 +558,8 @@
             })
             .then(data => {
                 logResponse("STATEMENT FETCHED", data);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "Fetch Statement";
 
                 document.getElementById("statementDisplay").classList.remove("d-none");
                 document.getElementById("dispName").innerText = data.memberName;
@@ -443,27 +574,107 @@
                     const icon = isDebit ? "bi-arrow-down-circle-fill" : "bi-arrow-up-circle-fill";
 
                     txList.innerHTML += `
-                    <li class="list-group-item px-0 bg-transparent d-flex justify-content-between align-items-center border-bottom border-light">
+                    <li class="list-group-item px-0 bg-transparent d-flex justify-content-between align-items-center border-bottom border-light pb-2 pt-2">
                         <span><i class="bi ${icon} ${color} me-2"></i> <strong>${tx.type}</strong></span>
                         <span class="fw-bold font-monospace">KES ${tx.amount.toFixed(2)}</span>
                     </li>
                 `;
                 });
             })
-            .catch(error => logResponse("ERROR", error.message));
+            .catch(error => {
+                logResponse("ERROR", error.message);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "Fetch Statement";
+            });
     });
 
     // --- API 8: Run EOM Interest Simulator ---
     document.getElementById("btnSimulateEOM").addEventListener("click", function() {
+        const submitBtn = this;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "Processing...";
+
         logResponse("SYSTEM NOTIFICATION", "Initializing EOM Batch Job... Please wait.");
 
         fetch('/api/loans/simulate-interest', {
             method: 'POST'
         })
             .then(response => response.json())
-            .then(data => logResponse("BATCH JOB SUCCESS", data))
-            .catch(error => logResponse("ERROR", error.message));
+            .then(data => {
+                logResponse("BATCH JOB SUCCESS", data);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "Run Simulator";
+            })
+            .catch(error => {
+                logResponse("ERROR", error.message);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "Run Simulator";
+            });
     });
 
+    // --- API 9: MEMBER 360 DASHBOARD FETCH ---
+    document.getElementById("btnSearchMember").addEventListener("click", function() {
+        const memberId = document.getElementById("searchMemberId").value;
+        const submitBtn = this;
+
+        if(!memberId) return alert("Please enter a Member ID");
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = "Fetching...";
+
+        fetch(`/api/members/${memberId}/360`)
+            .then(response => {
+                if(!response.ok) throw new Error("Member not found");
+                return response.json();
+            })
+            .then(data => {
+                logResponse("MEMBER 360 FETCHED", data);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "Retrieve 360";
+
+                document.getElementById("member360Display").classList.remove("d-none");
+
+                document.getElementById("dispMemberName").innerText = data.memberName;
+                document.getElementById("dispMemberTier").innerText = data.tier;
+                document.getElementById("dispFosa").innerText = data.fosaBalance.toFixed(2);
+                document.getElementById("dispFosaId").innerText = data.fosaAccountId;
+                document.getElementById("dispBosa").innerText = data.bosaBalance.toFixed(2);
+                document.getElementById("dispBosaId").innerText = data.bosaAccountId;
+
+                const targetShares = 5000;
+                let progress = (data.bosaBalance / targetShares) * 100;
+                if (progress > 100) progress = 100;
+
+                const progressBar = document.getElementById("shareProgressBar");
+                progressBar.style.width = progress + "%";
+                document.getElementById("dispProgressText").innerText = progress.toFixed(1) + "%";
+
+                if (progress >= 100) {
+                    progressBar.classList.remove("bg-warning");
+                    progressBar.classList.add("bg-success");
+                } else {
+                    progressBar.classList.remove("bg-success");
+                    progressBar.classList.add("bg-warning");
+                }
+
+                const estDividend = data.bosaBalance * 0.08;
+                document.getElementById("dispDividend").innerText = estDividend.toFixed(2);
+            })
+            .catch(error => {
+                logResponse("ERROR", error.message);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "Retrieve 360";
+            });
+    });
+
+
+    // Secure LOGOUT
+    function executeLogout(){
+        //Destroy the VIP wristband
+        sessionStorage.removeItem("saccoAdminAuth");
+        //Kick them back to the login page
+        window.location.replace("login.html");
+    }
 </script>
 </body>
+</html>

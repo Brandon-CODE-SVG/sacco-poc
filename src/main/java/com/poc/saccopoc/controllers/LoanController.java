@@ -18,7 +18,11 @@ public class LoanController {
 
     @PostMapping("/apply")
     public Loan applyLoan(@RequestBody LoanRequest loanRequest) {
-        return loanService.applyLoan(loanRequest.memberId, loanRequest.principalAmount);
+        return loanService.applyLoan(
+                loanRequest.getMemberId(),
+                loanRequest.getPrincipalAmount(),
+                loanRequest.getGuarantorIds()
+        );
 
     }
 

@@ -24,18 +24,86 @@ public class LoanService {
     private final TransactionRepository transactionRepository;
 
 
-    public Loan applyLoan(Long memberId, Double principalAmount){
-
+    @Transactional
+    public Loan applyLoan(Long memberId, Double principalAmount, List<Long> guarantorIds) {
+        //  Check for negative or zero amounts
         if (principalAmount == null || principalAmount <= 0) {
             throw new RuntimeException("TRANSACTION FAILED: Loan application amount must be greater than zero.");
         }
 
-        //find the member
+        //  Find the Member
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(()-> new RuntimeException("Member Not Found"));
-        // Create the loan Contract, we set the loan at 12% interest for the POC
-        Loan newLoan = new Loan(principalAmount, 12.0, "APPROVED", member);
 
+        //  Compliance Check for Minors
+        if ("JUNIOR".equalsIgnoreCase(member.getTier())) {
+            throw new RuntimeException("COMPLIANCE VIOLATION: Junior members are not permitted to take out credit facilities.");
+        }
+
+        //  Find the Borrower's BOSA Account
+        List<Account> accounts = accountRepository.findByMember(member);
+        Account bosaAccount = accounts.stream()
+                .filter(acc -> "BOSA".equalsIgnoreCase(acc.getAccountType()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("CRITICAL ERROR: Member does not have a BOSA Share Capital account."));
+
+        //  Minimum Shares Bouncer
+        if (bosaAccount.getBalance() < 5000.0) {
+            throw new RuntimeException("LOAN DENIED: Insufficient Share Capital. Minimum required is KES 5,000. Current balance: KES " + bosaAccount.getBalance());
+        }
+
+        // The Multiplier Bouncer (3x Limit)
+        List<Loan> existingLoans = loanRepository.findByMember(member);
+        double totalOutstandingDebt = existingLoans.stream()
+                .mapToDouble(Loan::getPrincipalAmount)
+                .sum();
+        double totalRequestedExposure = totalOutstandingDebt + principalAmount;
+        double maxLoanLimit = bosaAccount.getBalance() * 3.0;
+
+        if (totalRequestedExposure > maxLoanLimit) {
+            throw new RuntimeException(String.format(
+                    "LOAN DENIED: Total exposure exceeds 3x Share Capital limit. Max Allowed: KES %.2f | Current Debt: KES %.2f | Requested: KES %.2f",
+                    maxLoanLimit, totalOutstandingDebt, principalAmount
+            ));
+        }
+
+        // THE GUARANTOR BOUNCER
+        if (guarantorIds == null || guarantorIds.isEmpty()) {
+            throw new RuntimeException("LOAN DENIED: Unsecured loans are strictly prohibited. You must provide at least one guarantor.");
+        }
+
+        double totalGuarantorCapacity = 0.0;
+
+        for (Long gId : guarantorIds) {
+            if (gId.equals(memberId)) {
+                throw new RuntimeException("COMPLIANCE VIOLATION: A member cannot act as a guarantor for their own loan.");
+            }
+            Member guarantor = memberRepository.findById(gId)
+                    .orElseThrow(() -> new RuntimeException("GUARANTOR REJECTED: Member ID " + gId + " does not exist."));
+
+            Account guarantorBosa = accountRepository.findByMember(guarantor).stream()
+                    .filter(acc -> "BOSA".equalsIgnoreCase(acc.getAccountType()))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("CRITICAL ERROR: Guarantor ID " + gId + " does not have a BOSA account."));
+
+            totalGuarantorCapacity += guarantorBosa.getBalance();
+        }
+
+        // Calculate the Unsecured Risk
+        // The SACCO only cares about the money not covered by your own shares!
+        double unsecuredRisk = principalAmount - bosaAccount.getBalance();
+
+        // If the loan is smaller than your own shares, unsecured risk is 0.
+        // Otherwise, guarantors must cover the difference.
+        if (unsecuredRisk > 0 && totalGuarantorCapacity < unsecuredRisk) {
+            throw new RuntimeException(String.format(
+                    "LOAN DENIED: Insufficient guarantor capacity. Unsecured Risk: KES %.2f | Guarantors Combined BOSA: KES %.2f",
+                    unsecuredRisk, totalGuarantorCapacity
+            ));
+        }
+
+        // 8. If they pass ALL regulatory checks, originate the loan contract!
+        Loan newLoan = new Loan(principalAmount, 12.0, "APPROVED", member);
         return loanRepository.save(newLoan);
     }
 

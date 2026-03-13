@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technosis SACCO | Secure Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f4f6f9; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .login-card { border: none; border-radius: 12px; box-shadow: 0 15px 30px rgba(0,0,0,0.1); overflow: hidden; max-width: 900px; width: 100%; }
+        .bg-login-image { background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%); display: flex; align-items: center; justify-content: center; color: white; flex-direction: column; padding: 40px; }
+    </style>
+
+
+</head>
+<body>
+
+<div class="container">
+    <div class="card login-card row flex-row">
+        <div class="col-md-6 bg-login-image d-none d-md-flex">
+            <i class="bi bi-hexagon-fill mb-3" style="font-size: 4rem;"></i>
+            <h2 class="fw-bold">Technosis SACCO</h2>
+            <p class="text-center mt-3 opacity-75">Enterprise Core Banking & Member Management System. SASRA Compliant Architecture.</p>
+        </div>
+        <div class="col-md-6 p-5 bg-white">
+            <h4 class="fw-bold text-dark mb-1">Admin Portal</h4>
+            <p class="text-muted mb-4 small">Sign in with your authorized credentials</p>
+
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-secondary">Work Email</label>
+                    <input type="email" class="form-control" id="email" placeholder="admin@technosis.co.ke" required>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-secondary">Password</label>
+                    <input type="password" class="form-control" id="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mb-3">Authenticate</button>
+                <div id="loginError" class="text-danger small text-center d-none fw-bold">Invalid credentials. Access denied.</div>
+            </form>
+            <div class="text-center mt-4">
+                <p class="small text-muted"><i class="bi bi-shield-lock-fill text-success"></i> 256-bit Encrypted Connection</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById("loginForm").addEventListener("submit", function(e){
+        e.preventDefault();
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const btn = this.querySelector("button");
+
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
+        btn.disabled = true;
+
+        // POC mock Login (accept admin/ admin123)
+
+        setTimeout(() => {
+            if(email === "admin@gmail.com" && password === "admin123"){
+
+                sessionStorage.setItem("saccoAdminAuth", "true");
+                window.location.href = "index.html"; // Redirect to the dashboard
+            }else{
+                document.getElementById("loginError").classList.remove("d-none");
+                btn.innerHTML = "Authenticate";
+                btn.disabled = false;
+            }
+            }, 1200
+
+        )
+    })
+</script>
+</body>
+</html>
